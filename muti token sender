@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VinuHub</title>
+    <style>
+        body {
+            background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        #logo {
+            width: 100px;
+            height: auto;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            transition: transform 0.3s;
+        }
+
+        #logo:hover {
+            transform: scale(1.1);
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(34, 34, 34, 0.9);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(51, 51, 51, 0.8);
+            border-radius: 8px;
+            border: 1px solid #555555;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            display: block;
+            color: #dddddd;
+        }
+
+        input, textarea {
+            width: 100%;
+            background-color: #333333;
+            color: #ffffff;
+            border: 2px solid #666666;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #ffffff;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: linear-gradient(#ffffff, #e0e0e0);
+            color: #000000;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin: 5px;
+        }
+
+        button:hover {
+            background: linear-gradient(#e0e0e0, #c0c0c0);
+            transform: scale(1.05);
+        }
+
+        #disconnectWallet {
+            background: linear-gradient(#ff6666, #cc3333);
+        }
+
+        #disconnectWallet:hover {
+            background: linear-gradient(#cc3333, #992222);
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #status {
+            text-align: center;
+            padding: 12px;
+            background: #444444;
+            border-radius: 6px;
+            border-left: 4px solid #ffffff;
+            margin-top: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        #historyTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #historyTable th, #historyTable td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #555555;
+        }
+
+        #historyTable th {
+            background: #3c3c3c;
+            font-weight: bold;
+        }
+
+        #historyTable a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        #historyTable a:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: none;
+            border: 4px solid #ffffff;
+            border-top: 4px solid #000000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            .container { padding: 20px; }
+            input, textarea, button { font-size: 14px; }
+            #logo { width: 80px; }
+            .btn-group { flex-direction: column; }
+            button { padding: 12px 20px; }
+        }
+
+        @media (max-width: 400px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            #historyTable { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img id="logo" src="https://photos.pinksale.finance/file/pinksale-logo-upload/1759847695513-f915ce15471ce09f03d8fbf68bc0616f.png" alt="VinuHub Logo">
+    </header>
+
+    <div class="container">
+        <div class="section">
+            <button id="connectWallet">Connect Wallet</button>
+            <button id="disconnectWallet" style="display: none;">Disconnect Wallet</button>
+            <p id="walletAddress"></p>
+        </div>
+
+        <div id="balanceSection" class="section">
+            <strong>Balances</strong><br>
+            <span id="balances"></span>
+        </div>
+
+        <div class="section">
+            <label>Token Address (blank for VC)</label>
+            <input type="text" id="tokenAddress" placeholder="0x...">
+        </div>
+
+        <div class="section">
+            <label>Recipients (address,amount per line) or Upload CSV</label>
+            <textarea id="recipients" rows="5" placeholder="0xabc...,100&#10;0xdef...,200"></textarea>
+            <input type="file" id="csvUpload" accept=".csv" style="margin-top: 10px;">
+            
+            <div class="btn-group">
+                <button id="approveBtn">Approve</button>
+                <button id="sendBtn">Send to All</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <strong>Transaction History</strong>
+            <div class="btn-group">
+                <button id="filterHistory">Filter by Token</button>
+                <button id="clearHistory">Clear History</button>
+                <button id="exportHistory">Export CSV</button>
+            </div>
+            <select id="filterToken" style="margin-top: 10px; display: none;">
+                <option value="">All Tokens</option>
+            </select>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Token</th>
+                        <th>Tx Hash</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+
+        <div id="status"></div>
+        <div class="spinner" id="spinner"></div>
+    </div>
+
+    <script>
+        // Function to load a script with fallback
+        function loadScript(src, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = () => callback(null);
+            script.onerror = () => callback(new Error(`Failed to load script: ${src}`));
+            document.head.appendChild(script);
+        }
+
+        // Load ethers.js with fallback CDNs
+        const cdnUrls = [
+            'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js',
+            'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js'
+        ];
+
+        let ethersLoaded = false;
+        let currentCdnIndex = 0;
+
+        function tryLoadEthers() {
+            if (currentCdnIndex >= cdnUrls.length) {
+                document.getElementById('status').textContent = 'Error: Failed to load ethers.js from all sources. Check your internet or try again later.';
+                console.error('All ethers.js CDNs failed');
+                return;
+            }
+            loadScript(cdnUrls[currentCdnIndex], (error) => {
+                if (error) {
+                    console.error(error);
+                    currentCdnIndex++;
+                    tryLoadEthers(); // Try next CDN
+                } else if (typeof ethers !== 'undefined') {
+                    ethersLoaded = true;
+                    initializeApp();
+                } else {
+                    currentCdnIndex++;
+                    tryLoadEthers(); // Try next CDN if ethers not defined
+                }
+            });
+        }
+
+        function initializeApp() {
+            if (!ethersLoaded || typeof ethers === 'undefined') {
+                document.getElementById('status').textContent = 'Error: ethers.js not loaded. Please refresh the page.';
+                console.error('ethers.js not loaded');
+                return;
+            }
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const contractAddress = '0x41947084cbCe9823B384FffA5b3d2cBeeB5406e7';
+            const abi = [
+                'function multiSendToken(address _token, address[] _recipients, uint256[] _amounts)',
+                'function multiSendNative(address[] _recipients, uint256[] _amounts) payable'
+            ];
+            let signer;
+            const contract = new ethers.Contract(contractAddress, abi, provider);
+            const erc20Abi = [
+                'function approve(address,uint256)',
+                'function balanceOf(address)view returns(uint256)',
+                'function decimals()view returns(uint8)',
+                'function symbol()view returns(string)'
+            ];
+            const historyKey = 'vinuhub_history';
+            const explorer = 'https://vinuexplorer.org/tx/';
+            let currentToken = { address: '', symbol: 'VC', decimals: 18 };
+            const rpcUrls = ['https://rpc.vinuchain.org', 'https://vinuchain-rpc.com'];
+
+            function saveHistory(txHash, status, tokenSymbol) {
+                const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                history.unshift({ date: new Date().toLocaleString(), txHash, status, token: tokenSymbol });
+                localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
+                loadHistory();
+            }
+
+            function loadHistory(filterToken = '') {
+                const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                const tbody = document.getElementById('historyBody');
+                tbody.innerHTML = '';
+                const tokenSet = new Set(['']);
+                history.forEach(item => {
+                    tokenSet.add(item.token);
+                    if (!filterToken || item.token === filterToken) {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${item.date}</td>
+                            <td>${item.token}</td>
+                            <td><a href="${explorer}${item.txHash}" target="_blank">${item.txHash.slice(0, 10)}...</a></td>
+                            <td>${item.status}</td>
+                        `;
+                    }
+                });
+                const filterSelect = document.getElementById('filterToken');
+                filterSelect.innerHTML = '<option value="">All Tokens</option>';
+                Array.from(tokenSet).sort().forEach(token => {
+                    if (token) {
+                        const option = document.createElement('option');
+                        option.value = token;
+                        option.text = token;
+                        filterSelect.appendChild(option);
+                    }
+                });
+            }
+
+            function exportHistory() {
+                const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                const csv = 'Date,Token,Tx Hash,Status\n' + history.map(h => `"${h.date}","${h.token}","${h.txHash}","${h.status}"`).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `vinuhub-history-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            function clearHistory() {
+                localStorage.removeItem(historyKey);
+                loadHistory();
+            }
+
+            async function showBalance() {
+                if (!signer) {
+                    document.getElementById('balances').innerHTML = 'Connect wallet to view balances';
+                    return;
+                }
+                const address = await signer.getAddress();
+                const vcBalance = await provider.getBalance(address);
+                let html = `VC: ${ethers.utils.formatEther(vcBalance)}`;
+                const tokenAddr = document.getElementById('tokenAddress').value.trim();
+                if (tokenAddr && ethers.utils.isAddress(tokenAddr)) {
+                    try {
+                        const token = new ethers.Contract(tokenAddr, erc20Abi, provider);
+                        const [bal, dec, sym] = await Promise.all([
+                            token.balanceOf(address),
+                            token.decimals(),
+                            token.symbol()
+                        ]);
+                        currentToken = { address: tokenAddr, symbol: sym, decimals: dec };
+                        html += `<br>${sym}: ${ethers.utils.formatUnits(bal, dec)}`;
+                    } catch (e) {
+                        console.error('Token balance fetch error:', e);
+                        currentToken = { address: '', symbol: 'VC', decimals: 18 };
+                        html += `<br>Invalid token address`;
+                    }
+                } else {
+                    currentToken = { address: '', symbol: 'VC', decimals: 18 };
+                }
+                document.getElementById('balances').innerHTML = html;
+            }
+
+            async function connectWallet(manual = false) {
+                console.log(manual ? 'Manual connect initiated' : 'Auto-detecting wallet...');
+                try {
+                    if (!window.ethereum || !window.ethereum.isMetaMask) {
+                        throw new Error('MetaMask not detected. Install MetaMask from metamask.io.');
+                    }
+                    document.getElementById('spinner').style.display = 'block';
+                    document.getElementById('status').textContent = manual ? 'Requesting connection...' : 'Auto-detecting wallet...';
+                    
+                    let accounts;
+                    if (manual) {
+                        console.log('Requesting accounts manually...');
+                        accounts = await provider.send('eth_requestAccounts', []);
+                    } else {
+                        console.log('Checking existing accounts...');
+                        accounts = await provider.send('eth_accounts', []);
+                    }
+                    
+                    if (accounts.length === 0 && !manual) {
+                        console.log('No accounts found, keeping connect button visible');
+                        document.getElementById('status').textContent = 'Please connect your wallet';
+                        return;
+                    }
+
+                    console.log('Accounts:', accounts);
+                    signer = provider.getSigner();
+                    document.getElementById('walletAddress').innerHTML = `Connected: <strong>${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}</strong>`;
+                    document.getElementById('connectWallet').style.display = 'none';
+                    document.getElementById('disconnectWallet').style.display = 'inline-block';
+                    
+                    console.log('Checking network...');
+                    const network = await provider.getNetwork();
+                    console.log('Current chain ID:', network.chainId);
+                    if (network.chainId !== 207) {
+                        document.getElementById('status').textContent = 'Switching to VinuChain...';
+                        console.log('Attempting to switch to VinuChain...');
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: '0xcf' }]
+                            });
+                        } catch (switchError) {
+                            if (switchError.code === 4902) {
+                                console.log('VinuChain not found, adding...');
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: '0xcf',
+                                        chainName: 'VinuChain',
+                                        rpcUrls: rpcUrls,
+                                        nativeCurrency: { name: 'VC', symbol: 'VC', decimals: 18 },
+                                        blockExplorerUrls: ['https://vinuexplorer.org']
+                                    }]
+                                });
+                            } else {
+                                throw switchError;
+                            }
+                        }
+                    }
+                    await showBalance();
+                    loadHistory();
+                    document.getElementById('status').textContent = 'Wallet connected successfully!';
+                    console.log('Connection successful');
+                } catch (error) {
+                    console.error('Connect error:', error);
+                    let userMessage = 'Connection failed: ';
+                    if (error.code === 4001 || error.message.includes('User rejected')) {
+                        userMessage += 'You rejected the request in MetaMask.';
+                    } else if (error.message.includes('MetaMask not detected')) {
+                        userMessage += 'Install MetaMask from metamask.io.';
+                    } else if (error.message.includes('network')) {
+                        userMessage += 'Network issue. Add VinuChain manually: Chain ID 207, RPC https://rpc.vinuchain.org.';
+                    } else {
+                        userMessage += error.message;
+                    }
+                    document.getElementById('status').textContent = userMessage;
+                    document.getElementById('connectWallet').style.display = 'block';
+                    document.getElementById('disconnectWallet').style.display = 'none';
+                } finally {
+                    document.getElementById('spinner').style.display = 'none';
+                }
+            }
+
+            document.getElementById('connectWallet').addEventListener('click', () => connectWallet(true));
+
+            document.getElementById('disconnectWallet').addEventListener('click', () => {
+                signer = null;
+                document.getElementById('walletAddress').innerHTML = '';
+                document.getElementById('balances').innerHTML = 'Connect wallet to view balances';
+                document.getElementById('connectWallet').style.display = 'block';
+                document.getElementById('disconnectWallet').style.display = 'none';
+                document.getElementById('status').textContent = 'Wallet disconnected';
+                console.log('Wallet disconnected');
+            });
+
+            document.getElementById('tokenAddress').addEventListener('input', async () => {
+                await showBalance();
+            });
+
+            document.getElementById('csvUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const lines = event.target.result.split('\n').slice(1).filter(line => line.trim());
+                    const validLines = lines.map(line => {
+                        const [addr, amt] = line.split(',').map(part => part.trim());
+                        if (ethers.utils.isAddress(addr) && !isNaN(amt) && Number(amt) > 0) {
+                            return `${addr},${amt}`;
+                        }
+                        return '';
+                    }).filter(line => line);
+                    document.getElementById('recipients').value = validLines.join('\n');
+                    document.getElementById('status').textContent = `Loaded ${validLines.length} valid recipients from CSV`;
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById('approveBtn').addEventListener('click', async () => {
+                const tokenAddr = document.getElementById('tokenAddress').value.trim();
+                if (!tokenAddr) {
+                    document.getElementById('status').textContent = 'No approval needed for VC';
+                    return;
+                }
+                const recipientsText = document.getElementById('recipients').value;
+                const lines = recipientsText.split('\n').filter(line => line.trim());
+                if (!signer || lines.length === 0) {
+                    document.getElementById('status').textContent = 'Invalid input or not connected';
+                    return;
+                }
+                document.getElementById('spinner').style.display = 'block';
+                document.getElementById('status').textContent = 'Approving...';
+                try {
+                    const token = new ethers.Contract(tokenAddr, erc20Abi, signer);
+                    const dec = await token.decimals();
+                    let total = ethers.BigNumber.from(0);
+                    lines.forEach(line => {
+                        const [, amt] = line.split(',').map(part => part.trim());
+                        if (amt && !isNaN(amt)) total = total.add(ethers.utils.parseUnits(amt, dec));
+                    });
+                    if (total.eq(0)) {
+                        document.getElementById('status').textContent = 'No valid amounts';
+                        return;
+                    }
+                    const tx = await token.approve(contractAddress, total);
+                    await tx.wait();
+                    document.getElementById('status').textContent = 'Approved!';
+                    saveHistory(tx.hash, 'Approved', currentToken.symbol);
+                } catch (error) {
+                    console.error('Approve error:', error);
+                    document.getElementById('status').textContent = `Error: ${error.message}`;
+                    saveHistory('N/A', `Approve Failed: ${error.message}`, currentToken.symbol);
+                } finally {
+                    document.getElementById('spinner').style.display = 'none';
+                }
+            });
+
+            document.getElementById('sendBtn').addEventListener('click', async () => {
+                const tokenAddr = document.getElementById('tokenAddress').value.trim();
+                const recipientsText = document.getElementById('recipients').value;
+                const lines = recipientsText.split('\n').filter(line => line.trim());
+                const recipients = [];
+                const amounts = [];
+                let dec = currentToken.decimals;
+                let totalValue = ethers.BigNumber.from(0);
+                lines.forEach(line => {
+                    const [addr, amt] = line.split(',').map(part => part.trim());
+                    if (addr && amt && ethers.utils.isAddress(addr) && !isNaN(amt) && Number(amt) > 0) {
+                        const parsedAmt = ethers.utils.parseUnits(amt, dec);
+                        recipients.push(addr);
+                        amounts.push(parsedAmt);
+                        totalValue = totalValue.add(parsedAmt);
+                    }
+                });
+                if (recipients.length === 0 || !signer) {
+                    document.getElementById('status').textContent = 'Invalid inputs or not connected';
+                    return;
+                }
+                document.getElementById('spinner').style.display = 'block';
+                document.getElementById('status').textContent = 'Sending...';
+                try {
+                    let tx;
+                    if (!tokenAddr) {
+                        tx = await contract.connect(signer).multiSendNative(recipients, amounts, { value: totalValue });
+                    } else {
+                        tx = await contract.connect(signer).multiSendToken(tokenAddr, recipients, amounts);
+                    }
+                    await tx.wait();
+                    document.getElementById('status').innerHTML = `Success! <a href="${explorer}${tx.hash}" target="_blank">View Tx</a>`;
+                    saveHistory(tx.hash, 'Success', currentToken.symbol);
+                    showBalance();
+                } catch (error) {
+                    console.error('Send error:', error);
+                    document.getElementById('status').textContent = `Error: ${error.message}`;
+                    saveHistory('N/A', `Send Failed: ${error.message}`, currentToken.symbol);
+                } finally {
+                    document.getElementById('spinner').style.display = 'none';
+                }
+            });
+
+            document.getElementById('filterHistory').addEventListener('click', () => {
+                const filterSelect = document.getElementById('filterToken');
+                filterSelect.style.display = filterSelect.style.display === 'none' ? 'block' : 'none';
+            });
+
+            document.getElementById('filterToken').addEventListener('change', (e) => {
+                loadHistory(e.target.value);
+            });
+
+            document.getElementById('clearHistory').addEventListener('click', clearHistory);
+            document.getElementById('exportHistory').addEventListener('click', exportHistory);
+
+            // Auto-detect on load
+            window.addEventListener('load', () => {
+                connectWallet(false);
+            });
+        }
+
+        // Start loading ethers.js
+        tryLoadEthers();
+    </script>
+</body>
+</html>
