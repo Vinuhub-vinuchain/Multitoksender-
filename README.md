@@ -1,4 +1,3 @@
-# VinuHub Multi token sender 
+# VinuHub Multi-Token Sender
 
-Send Native Vc or other tokens under vinuchain to multiple address on vinuchain with just one click.
-
+A React + TypeScript dApp for sending native VC or ERC20 tokens to multiple recipients on VinuChain (Chain ID: 207) using a smart contract. Features wallet connection, CSV upload, and transaction history.
