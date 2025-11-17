@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ethers } from 'ethers';
+import { ethers } from 'ethers'; // Import ethers directly
 import { WalletState, WalletHook } from '../types/wallet';
 
 export const useWallet = (): WalletHook => {
