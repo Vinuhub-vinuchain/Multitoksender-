@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ethers } from 'ethers'; // Import ethers directly (no CDN)
 import { useWallet } from '../hooks/useWallet';
 
 const WalletConnect: React.FC = () => {
