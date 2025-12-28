@@ -7,6 +7,12 @@ const TokenSender: React.FC = () => {
   const [tokenAddress, setTokenAddress] = useState<string>('');
   const [recipientsText, setRecipientsText] = useState<string>('');
 
+
+  const [uiState, setUiState] = useState<{ status: string; isLoading: boolean }>({
+    status: '',
+    isLoading: false,
+  });
+
   const contractAddress = '0x41947084cbCe9823B384FffA5b3d2cBeeB5406e7';
   const abi = [
     'function multiSendToken(address _token, address[] _recipients, uint256[] _amounts)',
@@ -36,22 +42,22 @@ const TokenSender: React.FC = () => {
         })
         .filter((line) => line);
       setRecipientsText(validLines.join('\n'));
-      setState((prev) => ({ ...prev, status: `Loaded ${validLines.length} valid recipients from CSV` }));
+      setUiState((prev) => ({ ...prev, status: `Loaded ${validLines.length} valid recipients from CSV` }));
     };
     reader.readAsText(file);
   };
 
   const handleApprove = async () => {
     if (!tokenAddress) {
-      setState((prev) => ({ ...prev, status: 'No approval needed for VC' }));
+      setUiState((prev) => ({ ...prev, status: 'No approval needed for VC' }));
       return;
     }
     const lines = recipientsText.split('\n').filter((line) => line.trim());
     if (!state.isConnected || lines.length === 0) {
-      setState((prev) => ({ ...prev, status: 'Invalid input or not connected' }));
+      setUiState((prev) => ({ ...prev, status: 'Invalid input or not connected' }));
       return;
     }
-    setState((prev) => ({ ...prev, isLoading: true, status: 'Approving...' }));
+    setUiState((prev) => ({ ...prev, isLoading: true, status: 'Approving...' }));
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -63,16 +69,16 @@ const TokenSender: React.FC = () => {
         if (amt && !isNaN(Number(amt))) total = total.add(ethers.utils.parseUnits(amt, dec));
       });
       if (total.eq(0)) {
-        setState((prev) => ({ ...prev, status: 'No valid amounts', isLoading: false }));
+        setUiState((prev) => ({ ...prev, status: 'No valid amounts', isLoading: false }));
         return;
       }
       const tx = await token.approve(contractAddress, total);
       await tx.wait();
-      setState((prev) => ({ ...prev, status: 'Approved!', isLoading: false }));
+      setUiState((prev) => ({ ...prev, status: 'Approved!', isLoading: false }));
       saveHistory(tx.hash, 'Approved', state.currentToken.symbol);
     } catch (error: any) {
       console.error('Approve error:', error);
-      setState((prev) => ({ ...prev, status: `Error: ${error.message}`, isLoading: false }));
+      setUiState((prev) => ({ ...prev, status: `Error: ${error.message}`, isLoading: false }));
       saveHistory('N/A', `Approve Failed: ${error.message}`, state.currentToken.symbol);
     }
   };
@@ -95,11 +101,11 @@ const TokenSender: React.FC = () => {
     });
 
     if (recipients.length === 0 || !state.isConnected) {
-      setState((prev) => ({ ...prev, status: 'Invalid inputs or not connected', isLoading: false }));
+      setUiState((prev) => ({ ...prev, status: 'Invalid inputs or not connected', isLoading: false }));
       return;
     }
 
-    setState((prev) => ({ ...prev, isLoading: true, status: 'Sending...' }));
+    setUiState((prev) => ({ ...prev, isLoading: true, status: 'Sending...' }));
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -111,7 +117,7 @@ const TokenSender: React.FC = () => {
         tx = await contract.multiSendToken(tokenAddress, recipients, amounts);
       }
       await tx.wait();
-      setState((prev) => ({
+      setUiState((prev) => ({
         ...prev,
         status: `Success! <a href="https://vinuexplorer.org/tx/${tx.hash}" target="_blank">View Tx</a>`,
         isLoading: false,
@@ -120,12 +126,10 @@ const TokenSender: React.FC = () => {
       await updateBalance(tokenAddress);
     } catch (error: any) {
       console.error('Send error:', error);
-      setState((prev) => ({ ...prev, status: `Error: ${error.message}`, isLoading: false }));
+      setUiState((prev) => ({ ...prev, status: `Error: ${error.message}`, isLoading: false }));
       saveHistory('N/A', `Send Failed: ${error.message}`, state.currentToken.symbol);
     }
   };
-
-  const [state, setState] = useState<{ status: string; isLoading: boolean }>({ status: '', isLoading: false });
 
   const saveHistory = (txHash: string, status: string, tokenSymbol: string) => {
     const history = JSON.parse(localStorage.getItem('vinuhub_history') || '[]');
@@ -156,8 +160,8 @@ const TokenSender: React.FC = () => {
         <button id="approveBtn" onClick={handleApprove}>Approve</button>
         <button id="sendBtn" onClick={handleSend}>Send to All</button>
       </div>
-      {state.status && <div id="status">{state.status}</div>}
-      <div id="spinner" className="spinner" style={{ display: state.isLoading ? 'block' : 'none' }}></div>
+      {uiState.status && <div id="status" dangerouslySetInnerHTML={{ __html: uiState.status }}></div>}
+      <div id="spinner" className="spinner" style={{ display: uiState.isLoading ? 'block' : 'none' }}></div>
     </div>
   );
 };
