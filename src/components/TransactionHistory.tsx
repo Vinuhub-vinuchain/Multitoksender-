@@ -9,7 +9,6 @@ interface HistoryItem {
 
 const TransactionHistory: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [filterToken, setFilterToken] = useState<string>('');
   const historyKey = 'vinuhub_history';
   const explorer = 'https://vinuexplorer.org/tx/';
 
@@ -24,7 +23,9 @@ const TransactionHistory: React.FC = () => {
 
   const exportHistory = () => {
     const stored = JSON.parse(localStorage.getItem(historyKey) || '[]') as HistoryItem[];
-    const csv = 'Date,Token,Tx Hash,Status\n' + stored.map((h) => `"${h.date}","${h.token}","${h.txHash}","${h.status}"`).join('\n');
+    const csv =
+      'Date,Token,Tx Hash,Status\n' +
+      stored.map((h) => `"${h.date}","${h.token}","${h.txHash}","${h.status}"`).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -46,7 +47,13 @@ const TransactionHistory: React.FC = () => {
     <div className="section">
       <strong>Transaction History</strong>
       <div className="btn-group">
-        <button id="filterHistory" onClick={() => document.getElementById('filterToken')!.style.display = document.getElementById('filterToken')!.style.display === 'none' ? 'block' : 'none'}>
+        <button
+          id="filterHistory"
+          onClick={() =>
+            document.getElementById('filterToken')!.style.display =
+              document.getElementById('filterToken')!.style.display === 'none' ? 'block' : 'none'
+          }
+        >
           Filter by Token
         </button>
         <button id="clearHistory" onClick={clearHistory}>Clear History</button>
@@ -55,10 +62,7 @@ const TransactionHistory: React.FC = () => {
       <select
         id="filterToken"
         style={{ marginTop: '10px', display: 'none' }}
-        onChange={(e) => {
-          setFilterToken(e.target.value);
-          loadHistory(e.target.value);
-        }}
+        onChange={(e) => loadHistory(e.target.value)}
       >
         {tokens.map((token) => (
           <option key={token} value={token}>{token || 'All Tokens'}</option>
@@ -78,7 +82,11 @@ const TransactionHistory: React.FC = () => {
             <tr key={index}>
               <td>{item.date}</td>
               <td>{item.token}</td>
-              <td><a href={`${explorer}${item.txHash}`} target="_blank">{item.txHash.slice(0, 10)}...</a></td>
+              <td>
+                <a href={`${explorer}${item.txHash}`} target="_blank" rel="noreferrer">
+                  {item.txHash.slice(0, 10)}...
+                </a>
+              </td>
               <td>{item.status}</td>
             </tr>
           ))}

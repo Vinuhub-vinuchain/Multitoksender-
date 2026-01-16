@@ -20,5 +20,4 @@
 # Test coverage
 /coverage
 
-# Vite cache
-.vite
+

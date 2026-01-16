@@ -27,7 +27,7 @@ export const useWallet = (): WalletHook => {
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(window.ethereum as any);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
       const vcBalance = await provider.getBalance(address);
@@ -72,45 +72,38 @@ export const useWallet = (): WalletHook => {
     setState((prev) => ({ ...prev, isLoading: true, status: manual ? 'Requesting connection...' : 'Auto-detecting wallet...' }));
 
     try {
-      if (!window.ethereum || !window.ethereum.isMetaMask) {
+      if (!window.ethereum || !(window.ethereum as any).isMetaMask) {
         throw new Error('MetaMask not detected. Install MetaMask from metamask.io.');
       }
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(window.ethereum as any);
       let accounts: string[];
+
       if (manual) {
-        console.log('Requesting accounts manually...');
         accounts = await provider.send('eth_requestAccounts', []);
       } else {
-        console.log('Checking existing accounts...');
         accounts = await provider.send('eth_accounts', []);
       }
 
       if (accounts.length === 0 && !manual) {
-        console.log('No accounts found, keeping connect button visible');
         setState((prev) => ({ ...prev, status: 'Please connect your wallet', isLoading: false }));
         return;
       }
 
-      console.log('Accounts:', accounts);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
 
-      console.log('Checking network...');
       const network = await provider.getNetwork();
-      console.log('Current chain ID:', network.chainId);
       if (network.chainId !== 207) {
         setState((prev) => ({ ...prev, status: 'Switching to VinuChain...' }));
-        console.log('Attempting to switch to VinuChain...');
         try {
-          await window.ethereum.request({
+          await (window.ethereum as any).request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0xcf' }],
           });
         } catch (switchError: any) {
           if (switchError.code === 4902) {
-            console.log('VinuChain not found, adding...');
-            await window.ethereum.request({
+            await (window.ethereum as any).request({
               method: 'wallet_addEthereumChain',
               params: [{
                 chainId: '0xcf',
@@ -134,7 +127,6 @@ export const useWallet = (): WalletHook => {
         status: 'Wallet connected successfully!',
         isLoading: false,
       }));
-      console.log('Connection successful');
     } catch (error: any) {
       console.error('Connect error:', error);
       let userMessage = 'Connection failed: ';

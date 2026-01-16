@@ -1,12 +1,11 @@
 import React, { useState, ChangeEvent } from 'react';
 import { ethers } from 'ethers';
-import { useWallet } from '../hooks/useWallet';
+import { useWallet } from '../hooks/usewallet';
 
 const TokenSender: React.FC = () => {
   const { state, updateBalance } = useWallet();
   const [tokenAddress, setTokenAddress] = useState<string>('');
   const [recipientsText, setRecipientsText] = useState<string>('');
-
 
   const [uiState, setUiState] = useState<{ status: string; isLoading: boolean }>({
     status: '',
@@ -29,9 +28,11 @@ const TokenSender: React.FC = () => {
   const handleCsvUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (event) => {
-      const lines = event.target?.result?.toString().split('\n').slice(1).filter((line) => line.trim()) || [];
+      const lines =
+        event.target?.result?.toString().split('\n').slice(1).filter((line) => line.trim()) || [];
       const validLines = lines
         .map((line) => {
           const [addr, amt] = line.split(',').map((part) => part.trim());
@@ -52,11 +53,18 @@ const TokenSender: React.FC = () => {
       setUiState((prev) => ({ ...prev, status: 'No approval needed for VC' }));
       return;
     }
+
     const lines = recipientsText.split('\n').filter((line) => line.trim());
     if (!state.isConnected || lines.length === 0) {
       setUiState((prev) => ({ ...prev, status: 'Invalid input or not connected' }));
       return;
     }
+
+    if (!window.ethereum) {
+      setUiState((prev) => ({ ...prev, status: 'MetaMask is not installed', isLoading: false }));
+      return;
+    }
+
     setUiState((prev) => ({ ...prev, isLoading: true, status: 'Approving...' }));
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -64,16 +72,20 @@ const TokenSender: React.FC = () => {
       const token = new ethers.Contract(tokenAddress, erc20Abi, signer);
       const dec = state.currentToken.decimals;
       let total = ethers.BigNumber.from(0);
+
       lines.forEach((line) => {
         const [, amt] = line.split(',').map((part) => part.trim());
         if (amt && !isNaN(Number(amt))) total = total.add(ethers.utils.parseUnits(amt, dec));
       });
+
       if (total.eq(0)) {
         setUiState((prev) => ({ ...prev, status: 'No valid amounts', isLoading: false }));
         return;
       }
+
       const tx = await token.approve(contractAddress, total);
       await tx.wait();
+
       setUiState((prev) => ({ ...prev, status: 'Approved!', isLoading: false }));
       saveHistory(tx.hash, 'Approved', state.currentToken.symbol);
     } catch (error: any) {
@@ -105,23 +117,32 @@ const TokenSender: React.FC = () => {
       return;
     }
 
+    if (!window.ethereum) {
+      setUiState((prev) => ({ ...prev, status: 'MetaMask is not installed', isLoading: false }));
+      return;
+    }
+
     setUiState((prev) => ({ ...prev, isLoading: true, status: 'Sending...' }));
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, abi, signer);
       let tx;
+
       if (!tokenAddress) {
         tx = await contract.multiSendNative(recipients, amounts, { value: totalValue });
       } else {
         tx = await contract.multiSendToken(tokenAddress, recipients, amounts);
       }
+
       await tx.wait();
+
       setUiState((prev) => ({
         ...prev,
         status: `Success! <a href="https://vinuexplorer.org/tx/${tx.hash}" target="_blank">View Tx</a>`,
         isLoading: false,
       }));
+
       saveHistory(tx.hash, 'Success', state.currentToken.symbol);
       await updateBalance(tokenAddress);
     } catch (error: any) {
